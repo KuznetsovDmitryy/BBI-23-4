@@ -1,0 +1,72 @@
+
+using System;
+
+abstract class Runner
+{
+    protected string lastName;
+    protected string group;
+    protected string teacherLastName;
+    protected double result;
+
+    public double Result => result;
+
+    public Runner(string _lastName, string _group, string _teacherLastName, double _result)
+    {
+        lastName = _lastName;
+        group = _group;
+        teacherLastName = _teacherLastName;
+        result = _result;
+    }
+
+    public abstract void Print();
+}
+
+class Runner100m : Runner
+{
+    public Runner100m(string _lastName, string _group, string _teacherLastName, double _result)
+        : base(_lastName, _group, _teacherLastName, _result)
+    {
+    }
+
+    public override void Print()
+    {
+        Console.WriteLine($"Фамилия: {lastName}  Группа: {group}  Преподаватель: {teacherLastName}  Результат (100 м): {result}");
+    }
+}
+
+class Runner500m : Runner
+{
+    public Runner500m(string _lastName, string _group, string _teacherLastName, double _result)
+        : base(_lastName, _group, _teacherLastName, _result)
+    {
+    }
+
+    public override void Print()
+    {
+        Console.WriteLine($"Фамилия: {lastName}  Группа: {group}  Преподаватель: {teacherLastName}  Результат (500 м): {result}");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Runner[] participants = new Runner[5];
+        participants[0] = new Runner500m("Шевченко", "Группа 1", "Лендер", 210);
+        participants[1] = new Runner100m("Глазкова", "Группа 2", "Марк Анатолиевич", 180);
+        participants[2] = new Runner100m("Кузнецова", "Группа 1", "Месси", 195);
+        participants[3] = new Runner500m("Тылибцева", "Группа 3", "Роналду", 220);
+        participants[4] = new Runner100m("Лунина", "Группа 2", "Чуркин", 190);
+
+        Array.Sort(participants, (x, y) => x.Result.CompareTo(y.Result));
+
+        Console.WriteLine("\nРезультаты забега:");
+        Console.WriteLine("Фамилия\t\tГруппа\t\tПреподаватель\t\tРезультат");
+
+        foreach (var participant in participants)
+        {
+            participant.Print();
+        }
+
+    }
+}
