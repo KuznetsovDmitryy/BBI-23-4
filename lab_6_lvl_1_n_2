@@ -1,0 +1,98 @@
+using System;
+
+class Program
+{
+    struct StudentCrossData
+    {
+        private string surname;
+        private string group;
+        private string mentorSurname;
+        private double deltaTime;
+
+        public double DeltaTime
+        {
+            get { return deltaTime; }
+            private set { deltaTime = value; }
+        }
+
+        public StudentCrossData(string _surname, string _group, string _mentorSurname, double _deltaTime)
+        {
+            surname = _surname;
+            group = _group;
+            mentorSurname = _mentorSurname;
+            deltaTime = _deltaTime;
+        }
+
+        public void Read()
+        {
+            Console.Write("Student's surname: ");
+            surname = Console.ReadLine();
+            Console.Write("Student's group: ");
+            group = Console.ReadLine();
+            Console.Write("Mentor's surname: ");
+            mentorSurname = Console.ReadLine();
+            Console.Write("Result in seconds: ");
+            deltaTime = Convert.ToDouble(Console.ReadLine());
+        }
+
+        public void Show()
+        {
+            Console.WriteLine("{0, -12} | {1}m {2, 2:f0}s | Преподаватель {3, -12}: {4, 3} группа", surname, Math.Floor(deltaTime / 60), 60 * (deltaTime / 60 - Math.Floor(deltaTime / 60)), mentorSurname, group);
+        }
+
+    }
+
+    static void Main()
+    {
+        int n = 10;
+        int passed = 180;
+
+        Random rand = new Random();
+        StudentCrossData[] data = new StudentCrossData[n];
+        string[] surnames =
+        {
+            "Глазкова",
+            "Тылибцева",
+            "Лендеровна",
+            "Лунина",
+            "Кузнецова",
+            "Шевченко",
+            "Блиновская",
+            "Домбровская",
+        };
+        string[] groups =
+        {
+            "АСУ",
+            "БАС",
+            "БУМ",
+            "ТИК",
+            "ТАК",
+            "ПУК",
+        };
+        for (int i = 0; i < n; i++)
+        {
+            int surnameIndex = rand.Next(surnames.Length);
+            int groupIndex = rand.Next(groups.Length);
+            int mentorIndex = rand.Next(surnames.Length);
+            double deltaTime = (150 + rand.Next(50));
+            StudentCrossData studentData = new StudentCrossData(surnames[surnameIndex], groups[groupIndex], surnames[mentorIndex], deltaTime);
+            data[i] = studentData;
+        }
+
+        var query = data.OrderBy(x => x.DeltaTime);
+        bool flag = true;
+        int cnt = 0;
+        Console.WriteLine("Выполнили:\n");
+        foreach (StudentCrossData item in query)
+        {
+            if (flag && item.DeltaTime > passed)
+            {
+                flag = false;
+                Console.WriteLine("\nНе выполнили:\n");
+            }
+            if (flag) cnt++;
+            item.Show();
+        }
+        Console.WriteLine("\nВсего выполнили: {0}", cnt);
+    }
+}
