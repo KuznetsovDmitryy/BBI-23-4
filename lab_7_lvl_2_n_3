@@ -1,0 +1,119 @@
+using System;
+
+abstract class SportDiscipline
+{
+    protected string disciplineName;
+    protected Athlete[] athletes;
+    protected int athleteCount;
+
+    public SportDiscipline(string name, int maxAthletes)
+    {
+        disciplineName = name;
+        athletes = new Athlete[maxAthletes];
+        athleteCount = 0;
+    }
+
+    public void AddAthlete(Athlete athlete)
+    {
+        if (athleteCount < athletes.Length)
+        {
+            athletes[athleteCount] = athlete;
+            athleteCount++;
+        }
+        else
+        {
+            Console.WriteLine("Достигнуто максимальное количество участников.");
+        }
+    }
+
+    public abstract void PrintHeader();
+
+    public void PrintAthletes()
+    {
+        foreach (var athlete in athletes)
+        {
+            if (athlete != null)
+                athlete.Print();
+        }
+    }
+}
+
+class LongJump : SportDiscipline
+{
+    public LongJump(string name, int maxAthletes) : base(name, maxAthletes) { }
+
+    public override void PrintHeader()
+    {
+        Console.WriteLine($"\nПротокол соревнований по {disciplineName}:");
+    }
+}
+
+class HighJump : SportDiscipline
+{
+    public HighJump(string name, int maxAthletes) : base(name, maxAthletes) { }
+
+    public override void PrintHeader()
+    {
+        Console.WriteLine($"\nПротокол соревнований по {disciplineName}:");
+    }
+}
+
+class Athlete
+{
+    private string lastName;
+    private double[] results;
+
+    public string LastName => lastName;
+    public double[] Results => results;
+
+    public Athlete(string lastName, double[] results)
+    {
+        this.lastName = lastName;
+        this.results = results;
+    }
+
+    public double BestResult()
+    {
+        double bestResult = results[0];
+        for (int i = 1; i < results.Length; i++)
+        {
+            if (results[i] > bestResult)
+            {
+                bestResult = results[i];
+            }
+        }
+        return bestResult;
+    }
+
+    public void Print()
+    {
+        Console.WriteLine($"Фамилия: {LastName}  Лучший результат: {BestResult()}");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        LongJump longJump = new LongJump("прыжкам в длину", 5);
+        HighJump highJump = new HighJump("прыжкам в высоту", 5);
+
+        longJump.AddAthlete(new Athlete("Глазков", new double[] { 4.5, 4.6, 4.7 }));
+        longJump.AddAthlete(new Athlete("Кузнецов", new double[] { 4.8, 4.9, 5.0 }));
+        longJump.AddAthlete(new Athlete("Лендер", new double[] { 5.1, 5.2, 5.3 }));
+        longJump.AddAthlete(new Athlete("Тылибцев", new double[] { 5.4, 5.5, 5.6 }));
+        longJump.AddAthlete(new Athlete("Наумов", new double[] { 5.7, 5.8, 5.9 }));
+
+        highJump.AddAthlete(new Athlete("Глазков", new double[] { 1.5, 1.6, 1.7 }));
+        highJump.AddAthlete(new Athlete("Кузнецов", new double[] { 1.8, 1.9, 2.0 }));
+        highJump.AddAthlete(new Athlete("Лендер", new double[] { 2.1, 2.2, 2.3 }));
+        highJump.AddAthlete(new Athlete("Тылибцев", new double[] { 2.4, 2.5, 2.6 }));
+        highJump.AddAthlete(new Athlete("Наумов", new double[] { 2.7, 2.8, 2.9 }));
+
+        longJump.PrintHeader();
+        longJump.PrintAthletes();
+
+        highJump.PrintHeader();
+        highJump.PrintAthletes();
+    }
+}
