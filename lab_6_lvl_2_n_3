@@ -1,0 +1,78 @@
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    struct JumpResult
+    {
+        private string surname;
+        private double[] results;
+
+        public JumpResult(string _surname, double[] _results)
+        {
+            surname = _surname;
+            results = _results;
+        }
+
+        public string GetSurname()
+        {
+            return surname;
+        }
+
+        public double GetBestResult()
+        {
+            double bestResult = 0;
+            foreach (double result in results)
+            {
+                if (result > bestResult)
+                {
+                    bestResult = result;
+                }
+            }
+            return bestResult;
+        }
+    }
+
+    static void Main()
+    {
+        Console.WriteLine("Протокол соревнований по прыжкам в длину\n");
+
+        // Фамилии участников
+        string[] surnames = {
+            "Кузнецов",
+            "Лендер",
+            "Лунин", "Глазков",
+            "Тылибцев",
+            "Шевченко",
+            "Стоценко" };
+
+        Random rand = new Random();
+
+        List<JumpResult> results = new List<JumpResult>();
+
+
+        foreach (string surname in surnames)
+        {
+            double[] attempts = new double[3];
+            Console.WriteLine($"\nРезультаты для участника {surname}:");
+            for (int j = 0; j < 3; j++)
+            {
+                double attempt = 2 + rand.NextDouble() * 2;
+                attempts[j] = Math.Round(attempt, 2);
+                Console.WriteLine($"Результат {j + 1} попытки: {attempts[j]} метра");
+            }
+
+            JumpResult result = new JumpResult(surname, attempts);
+            results.Add(result);
+        }
+
+        Console.WriteLine("\nИтоговый протокол соревнований:");
+
+        // Вывод итогового протокола с лучшими результатами для каждого участника
+        foreach (JumpResult result in results)
+        {
+            double bestResult = result.GetBestResult();
+            Console.WriteLine($"{result.GetSurname()}: {bestResult} метра");
+        }
+    }
+}
