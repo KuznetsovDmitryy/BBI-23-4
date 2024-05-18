@@ -1,0 +1,71 @@
+using System;
+using System.Linq;
+//Task 2
+namespace MessageEncryption
+{
+
+    public interface IEncryptor
+    {
+        string Encrypt(string message);
+        string Decrypt(string message);
+    }
+
+    public class ReverseWordEncryptor : IEncryptor
+    {
+        public string Encrypt(string message)
+        {
+            return ProcessMessage(message);
+        }
+
+        public string Decrypt(string message)
+        {
+            return ProcessMessage(message);
+        }
+
+        private string ProcessMessage(string message)
+        {
+            var words = message.Split(' ');
+            var reversedWords = words.Select(word => new string(word.Reverse().ToArray()));
+            return string.Join(" ", reversedWords);
+        }
+    }
+
+    public class EncryptionService
+    {
+        private readonly IEncryptor _encryptor;
+
+        public EncryptionService(IEncryptor encryptor)
+        {
+            _encryptor = encryptor;
+        }
+
+        public string EncryptMessage(string message)
+        {
+            return _encryptor.Encrypt(message);
+        }
+
+        public string DecryptMessage(string message)
+        {
+            return _encryptor.Decrypt(message);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            IEncryptor encryptor = new ReverseWordEncryptor();
+            EncryptionService encryptionService = new EncryptionService(encryptor);
+
+            Console.WriteLine("Введите сообщение для шифрования:");
+            string originalMessage = Console.ReadLine();
+
+            string encryptedMessage = encryptionService.EncryptMessage(originalMessage);
+            string decryptedMessage = encryptionService.DecryptMessage(encryptedMessage);
+
+            Console.WriteLine($"Исходное сообщение: {originalMessage}");
+            Console.WriteLine($"Зашифрованное сообщение: {encryptedMessage}");
+            Console.WriteLine($"Расшифрованное сообщение: {decryptedMessage}");
+        }
+    }
+}
