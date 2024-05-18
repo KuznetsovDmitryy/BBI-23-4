@@ -1,0 +1,56 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace LastNameSorter
+{
+    public interface IStringSorter
+    {
+        IEnumerable<string> Sort(IEnumerable<string> strings);
+    }
+
+    public class AlphabeticalStringSorter : IStringSorter
+    {
+        public IEnumerable<string> Sort(IEnumerable<string> strings)
+        {
+            return strings.OrderBy(s => s);
+        }
+    }
+
+    public class LastNameSortingService
+    {
+        private readonly IStringSorter _stringSorter;
+
+        public LastNameSortingService(IStringSorter stringSorter)
+        {
+            _stringSorter = stringSorter;
+        }
+
+        public string SortLastNames(string lastNames)
+        {
+            var lastNameList = lastNames.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(name => name.Trim());
+
+            var sortedLastNameList = _stringSorter.Sort(lastNameList);
+
+            return string.Join(", ", sortedLastNameList);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            IStringSorter stringSorter = new AlphabeticalStringSorter();
+            LastNameSortingService lastNameSortingService = new LastNameSortingService(stringSorter);
+
+            Console.WriteLine("Введите список фамилий, разделенных запятыми:");
+            string lastNames = Console.ReadLine();
+
+            string sortedLastNames = lastNameSortingService.SortLastNames(lastNames);
+
+            Console.WriteLine("Упорядоченный список фамилий:");
+            Console.WriteLine(sortedLastNames);
+        }
+    }
+}
