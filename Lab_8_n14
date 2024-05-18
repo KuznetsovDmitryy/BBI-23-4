@@ -1,0 +1,63 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+
+namespace NumberSumCalculator
+{
+    public interface INumberExtractor
+    {
+        IEnumerable<int> ExtractNumbers(string text);
+    }
+
+    public class NumberExtractor : INumberExtractor
+    {
+        public IEnumerable<int> ExtractNumbers(string text)
+        {
+            var numbers = new List<int>();
+            var matches = Regex.Matches(text, @"\b(?:[1-9]|10)\b");
+
+            foreach (Match match in matches)
+            {
+                if (int.TryParse(match.Value, out int number))
+                {
+                    numbers.Add(number);
+                }
+            }
+
+            return numbers;
+        }
+    }
+
+    public class NumberSumService
+    {
+        private readonly INumberExtractor _numberExtractor;
+
+        public NumberSumService(INumberExtractor numberExtractor)
+        {
+            _numberExtractor = numberExtractor;
+        }
+
+        public int CalculateSum(string text)
+        {
+            var numbers = _numberExtractor.ExtractNumbers(text);
+            return numbers.Sum();
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            INumberExtractor numberExtractor = new NumberExtractor();
+            NumberSumService numberSumService = new NumberSumService(numberExtractor);
+
+            Console.WriteLine("Введите текст, содержащий слова и числа от 1 до 10:");
+            string text = Console.ReadLine();
+
+            int sum = numberSumService.CalculateSum(text);
+
+            Console.WriteLine($"Сумма включенных в текст чисел: {sum}");
+        }
+    }
+}
