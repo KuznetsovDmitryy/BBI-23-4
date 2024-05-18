@@ -1,0 +1,158 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Country
+{
+    protected Dictionary<string, int>[] responses;
+
+    public Dictionary<string, int>[] Responses => responses;
+
+    public Country()
+    {
+        responses = new Dictionary<string, int>[3];
+        for (int i = 0; i < responses.Length; i++)
+        {
+            responses[i] = new Dictionary<string, int>();
+        }
+    }
+
+    public virtual void FillResponses(int questionIndex, string question)
+    {
+        Console.WriteLine($"Введите ответы на вопрос: {question} (для завершения введите 'done')");
+
+        while (true)
+        {
+            Console.Write("Ответ: ");
+            string answer = Console.ReadLine().Trim().ToLower();
+
+            if (answer == "done")
+                break;
+
+            if (string.IsNullOrEmpty(answer))
+            {
+                Console.WriteLine("Ответ не может быть пустым. Повторите ввод.");
+                continue;
+            }
+
+            if (responses[questionIndex].ContainsKey(answer))
+                responses[questionIndex][answer]++;
+            else
+                responses[questionIndex][answer] = 1;
+        }
+    }
+
+    public virtual void PrintTopResponses(int questionIndex, string question)
+    {
+        Console.WriteLine($"\nТоп-5 наиболее часто встречающихся ответов на вопрос: {question}");
+
+        if (responses[questionIndex].Count == 0)
+        {
+            Console.WriteLine("Ответы отсутствуют.");
+            return;
+        }
+
+        var sortedResponses = responses[questionIndex].OrderByDescending(x => x.Value).Take(5);
+
+        int totalResponses = responses[questionIndex].Sum(x => x.Value);
+        foreach (var response in sortedResponses)
+        {
+            double percentage = (double)response.Value / totalResponses * 100;
+            Console.WriteLine($"{response.Key}: {response.Value} ({percentage:f2}%)");
+        }
+    }
+}
+
+class Russia : Country
+{
+    public Russia()
+    {
+    }
+}
+
+class Japan : Country
+{
+    public Japan()
+    {
+    }
+}
+
+class RadioPoll
+{
+    static void Main()
+    {
+        Russia russiaPoll = new Russia();
+        Japan japanPoll = new Japan();
+
+        string[] questions = new string[]
+        {
+            "Какое животное Вы связываете с Японией и японцами?",
+            "Какая черта характера присуща японцам больше всего?",
+            "Какой неодушевленный предмет или понятие Вы связываете с Японией?"
+        };
+
+        for (int i = 0; i < questions.Length; i++)
+        {
+            Console.WriteLine($"\nРоссия - Вопрос {i + 1}:");
+            russiaPoll.FillResponses(i, questions[i]);
+            russiaPoll.PrintTopResponses(i, questions[i]);
+
+            Console.WriteLine($"\nЯпония - Вопрос {i + 1}:");
+            japanPoll.FillResponses(i, questions[i]);
+            japanPoll.PrintTopResponses(i, questions[i]);
+        }
+
+        CombinePollResults(russiaPoll, japanPoll, questions);
+    }
+
+    static void CombinePollResults(Russia russia, Japan japan, string[] questions)
+    {
+        Console.WriteLine("\nРезультаты опроса по обеим странам вместе взятым:");
+
+        string[] combinedQuestions = new string[]
+        {
+            "Какое животное Вы связываете с страной?",
+            "Какая черта характера присуща жителям страны больше всего?",
+            "Какой неодушевленный предмет или понятие Вы связываете с страной?"
+        };
+
+        for (int i = 0; i < combinedQuestions.Length; i++)
+        {
+            Dictionary<string, int> combinedResponses = new Dictionary<string, int>();
+
+            foreach (var kvp in russia.Responses[i])
+            {
+                combinedResponses.TryGetValue(kvp.Key, out int count);
+                combinedResponses[kvp.Key] = count + kvp.Value;
+            }
+
+            foreach (var kvp in japan.Responses[i])
+            {
+                combinedResponses.TryGetValue(kvp.Key, out int count);
+                combinedResponses[kvp.Key] = count + kvp.Value;
+            }
+
+            PrintTopResponses(combinedResponses, combinedQuestions[i]);
+        }
+    }
+
+    static void PrintTopResponses(Dictionary<string, int> responses, string question)
+    {
+        Console.WriteLine($"\nТоп-5 наиболее часто встречающихся ответов на вопрос: {question}");
+
+        if (responses.Count == 0)
+        {
+            Console.WriteLine("Ответы отсутствуют.");
+            return;
+        }
+
+        var sortedResponses = responses.OrderByDescending(x => x.Value).Take(5);
+
+        int totalResponses = responses.Sum(x => x.Value);
+        foreach (var response in sortedResponses)
+        {
+            double percentage = (double)response.Value / totalResponses * 100;
+            Console.WriteLine($"{response.Key}: {response.Value} ({percentage:f2}%)");
+        }
+    }
+}
