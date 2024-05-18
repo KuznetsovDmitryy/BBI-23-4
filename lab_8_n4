@@ -1,0 +1,70 @@
+//Task 4
+using System;
+using System.Linq;
+
+namespace SentenceComplexity
+{
+    public interface ISentenceComplexityAnalyzer
+    {
+        int AnalyzeComplexity(string sentence);
+    }
+
+    public class SentenceComplexityAnalyzer : ISentenceComplexityAnalyzer
+    {
+        private static readonly char[] PunctuationMarks = { '.', ',', '!', '?', ';', ':', '-', '(', ')', '[', ']', '{', '}', '"', '\'' };
+
+        public int AnalyzeComplexity(string sentence)
+        {
+            int wordCount = CountWords(sentence);
+            int punctuationCount = CountPunctuationMarks(sentence);
+            return wordCount + punctuationCount;
+        }
+
+        private int CountWords(string sentence)
+        {
+            if (string.IsNullOrWhiteSpace(sentence))
+            {
+                return 0;
+            }
+
+            var words = sentence.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            return words.Length;
+        }
+
+        private int CountPunctuationMarks(string sentence)
+        {
+            return sentence.Count(c => PunctuationMarks.Contains(c));
+        }
+    }
+
+    public class ComplexityService
+    {
+        private readonly ISentenceComplexityAnalyzer _complexityAnalyzer;
+
+        public ComplexityService(ISentenceComplexityAnalyzer complexityAnalyzer)
+        {
+            _complexityAnalyzer = complexityAnalyzer;
+        }
+
+        public int GetSentenceComplexity(string sentence)
+        {
+            return _complexityAnalyzer.AnalyzeComplexity(sentence);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ISentenceComplexityAnalyzer complexityAnalyzer = new SentenceComplexityAnalyzer();
+            ComplexityService complexityService = new ComplexityService(complexityAnalyzer);
+
+            Console.WriteLine("Введите предложение для анализа сложности:");
+            string sentence = Console.ReadLine();
+
+            int complexity = complexityService.GetSentenceComplexity(sentence);
+
+            Console.WriteLine($"Сложность предложения: {complexity}");
+        }
+    }
+}
