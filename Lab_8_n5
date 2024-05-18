@@ -1,0 +1,84 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+
+namespace WordFrequencyAnalyzer
+{
+    public interface ILetterFrequencyAnalyzer
+    {
+        Dictionary<char, int> AnalyzeFrequency(string text);
+    }
+
+    public class LetterFrequencyAnalyzer : ILetterFrequencyAnalyzer
+    {
+        public Dictionary<char, int> AnalyzeFrequency(string text)
+        {
+            var frequencyDict = new Dictionary<char, int>();
+
+            var words = Regex.Matches(text, @"\b\w+");
+
+            foreach (Match match in words)
+            {
+                char firstLetter = char.ToLower(match.Value[0]);
+
+                if (char.IsLetter(firstLetter))
+                {
+                    if (frequencyDict.ContainsKey(firstLetter))
+                    {
+                        frequencyDict[firstLetter]++;
+                    }
+                    else
+                    {
+                        frequencyDict[firstLetter] = 1;
+                    }
+                }
+            }
+
+            return frequencyDict;
+        }
+    }
+
+    public class FrequencyAnalysisService
+    {
+        private readonly ILetterFrequencyAnalyzer _letterFrequencyAnalyzer;
+
+        public FrequencyAnalysisService(ILetterFrequencyAnalyzer letterFrequencyAnalyzer)
+        {
+            _letterFrequencyAnalyzer = letterFrequencyAnalyzer;
+        }
+
+        public Dictionary<char, int> GetLetterFrequency(string text)
+        {
+            return _letterFrequencyAnalyzer.AnalyzeFrequency(text);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ILetterFrequencyAnalyzer letterFrequencyAnalyzer = new LetterFrequencyAnalyzer();
+            FrequencyAnalysisService frequencyService = new FrequencyAnalysisService(letterFrequencyAnalyzer);
+
+            Console.WriteLine("Введите текст (не более 1000 символов):");
+            string text = Console.ReadLine();
+
+            if (text.Length > 1000)
+            {
+                Console.WriteLine("Ошибка: текст превышает 1000 символов.");
+                return;
+            }
+
+            var frequencyDict = frequencyService.GetLetterFrequency(text);
+
+            var sortedFrequency = frequencyDict.OrderByDescending(kvp => kvp.Value).ThenBy(kvp => kvp.Key);
+
+            Console.WriteLine("Буквы, на которые начинаются слова, в порядке убывания частоты:");
+            foreach (var kvp in sortedFrequency)
+            {
+                Console.WriteLine($"{kvp.Key}: {kvp.Value}");
+            }
+        }
+    }
+}
