@@ -1,0 +1,426 @@
+using System;
+using System.Linq;
+//Task 2
+namespace MessageEncryption
+{
+
+    public interface IEncryptor
+    {
+        string Encrypt(string message);
+        string Decrypt(string message);
+    }
+
+    public class ReverseWordEncryptor : IEncryptor
+    {
+        public string Encrypt(string message)
+        {
+            return ProcessMessage(message);
+        }
+
+        public string Decrypt(string message)
+        {
+            return ProcessMessage(message);
+        }
+
+        private string ProcessMessage(string message)
+        {
+            var words = message.Split(' ');
+            var reversedWords = words.Select(word => new string(word.Reverse().ToArray()));
+            return string.Join(" ", reversedWords);
+        }
+    }
+
+    public class EncryptionService
+    {
+        private readonly IEncryptor _encryptor;
+
+        public EncryptionService(IEncryptor encryptor)
+        {
+            _encryptor = encryptor;
+        }
+
+        public string EncryptMessage(string message)
+        {
+            return _encryptor.Encrypt(message);
+        }
+
+        public string DecryptMessage(string message)
+        {
+            return _encryptor.Decrypt(message);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            IEncryptor encryptor = new ReverseWordEncryptor();
+            EncryptionService encryptionService = new EncryptionService(encryptor);
+
+            Console.WriteLine("Введите сообщение для шифрования:");
+            string originalMessage = Console.ReadLine();
+
+            string encryptedMessage = encryptionService.EncryptMessage(originalMessage);
+            string decryptedMessage = encryptionService.DecryptMessage(encryptedMessage);
+
+            Console.WriteLine($"Исходное сообщение: {originalMessage}");
+            Console.WriteLine($"Зашифрованное сообщение: {encryptedMessage}");
+            Console.WriteLine($"Расшифрованное сообщение: {decryptedMessage}");
+        }
+    }
+}
+////Task 4
+using System;
+using System.Linq;
+
+namespace SentenceComplexity
+{
+    public interface ISentenceComplexityAnalyzer
+    {
+        int AnalyzeComplexity(string sentence);
+    }
+
+    public class SentenceComplexityAnalyzer : ISentenceComplexityAnalyzer
+    {
+        private static readonly char[] PunctuationMarks = { '.', ',', '!', '?', ';', ':', '-', '(', ')', '[', ']', '{', '}', '"', '\'' };
+
+        public int AnalyzeComplexity(string sentence)
+        {
+            int wordCount = CountWords(sentence);
+            int punctuationCount = CountPunctuationMarks(sentence);
+            return wordCount + punctuationCount;
+        }
+
+        private int CountWords(string sentence)
+        {
+            if (string.IsNullOrWhiteSpace(sentence))
+            {
+                return 0;
+            }
+
+            var words = sentence.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            return words.Length;
+        }
+
+        private int CountPunctuationMarks(string sentence)
+        {
+            return sentence.Count(c => PunctuationMarks.Contains(c));
+        }
+    }
+
+    public class ComplexityService
+    {
+        private readonly ISentenceComplexityAnalyzer _complexityAnalyzer;
+
+        public ComplexityService(ISentenceComplexityAnalyzer complexityAnalyzer)
+        {
+            _complexityAnalyzer = complexityAnalyzer;
+        }
+
+        public int GetSentenceComplexity(string sentence)
+        {
+            return _complexityAnalyzer.AnalyzeComplexity(sentence);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ISentenceComplexityAnalyzer complexityAnalyzer = new SentenceComplexityAnalyzer();
+            ComplexityService complexityService = new ComplexityService(complexityAnalyzer);
+
+            Console.WriteLine("Введите предложение для анализа сложности:");
+            string sentence = Console.ReadLine();
+
+            int complexity = complexityService.GetSentenceComplexity(sentence);
+
+            Console.WriteLine($"Сложность предложения: {complexity}");
+        }
+    }
+}
+
+
+// Task 5
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+
+namespace WordFrequencyAnalyzer
+{
+    public interface ILetterFrequencyAnalyzer
+    {
+        Dictionary<char, int> AnalyzeFrequency(string text);
+    }
+
+    public class LetterFrequencyAnalyzer : ILetterFrequencyAnalyzer
+    {
+        public Dictionary<char, int> AnalyzeFrequency(string text)
+        {
+            var frequencyDict = new Dictionary<char, int>();
+
+            var words = Regex.Matches(text, @"\b\w+");
+
+            foreach (Match match in words)
+            {
+                char firstLetter = char.ToLower(match.Value[0]);
+
+                if (char.IsLetter(firstLetter))
+                {
+                    if (frequencyDict.ContainsKey(firstLetter))
+                    {
+                        frequencyDict[firstLetter]++;
+                    }
+                    else
+                    {
+                        frequencyDict[firstLetter] = 1;
+                    }
+                }
+            }
+
+            return frequencyDict;
+        }
+    }
+
+    public class FrequencyAnalysisService
+    {
+        private readonly ILetterFrequencyAnalyzer _letterFrequencyAnalyzer;
+
+        public FrequencyAnalysisService(ILetterFrequencyAnalyzer letterFrequencyAnalyzer)
+        {
+            _letterFrequencyAnalyzer = letterFrequencyAnalyzer;
+        }
+
+        public Dictionary<char, int> GetLetterFrequency(string text)
+        {
+            return _letterFrequencyAnalyzer.AnalyzeFrequency(text);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ILetterFrequencyAnalyzer letterFrequencyAnalyzer = new LetterFrequencyAnalyzer();
+            FrequencyAnalysisService frequencyService = new FrequencyAnalysisService(letterFrequencyAnalyzer);
+
+            Console.WriteLine("Введите текст (не более 1000 символов):");
+            string text = Console.ReadLine();
+
+            if (text.Length > 1000)
+            {
+                Console.WriteLine("Ошибка: текст превышает 1000 символов.");
+                return;
+            }
+
+            var frequencyDict = frequencyService.GetLetterFrequency(text);
+
+            var sortedFrequency = frequencyDict.OrderByDescending(kvp => kvp.Value).ThenBy(kvp => kvp.Key);
+
+            Console.WriteLine("Буквы, на которые начинаются слова, в порядке убывания частоты:");
+            foreach (var kvp in sortedFrequency)
+            {
+                Console.WriteLine($"{kvp.Key}: {kvp.Value}");
+            }
+        }
+    }
+}
+
+// task 7
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+
+namespace WordExtractor
+{
+    public interface IWordFinder
+    {
+        IEnumerable<string> FindWords(string text, string sequence);
+    }
+
+    public class WordFinder : IWordFinder
+    {
+        public IEnumerable<string> FindWords(string text, string sequence)
+        {
+            var words = Regex.Matches(text, @"\b\w+\b")
+                             .Cast<Match>()
+                             .Select(m => m.Value)
+                             .Where(word => word.IndexOf(sequence, StringComparison.OrdinalIgnoreCase) >= 0)
+                             .Distinct();
+
+            return words;
+        }
+    }
+
+    public class WordSearchService
+    {
+        private readonly IWordFinder _wordFinder;
+
+        public WordSearchService(IWordFinder wordFinder)
+        {
+            _wordFinder = wordFinder;
+        }
+
+        public IEnumerable<string> GetWordsContainingSequence(string text, string sequence)
+        {
+            return _wordFinder.FindWords(text, sequence);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            IWordFinder wordFinder = new WordFinder();
+            WordSearchService wordSearchService = new WordSearchService(wordFinder);
+
+            Console.WriteLine("Введите текст (не более 1000 символов):");
+            string text = Console.ReadLine();
+
+            if (text.Length > 1000)
+            {
+                Console.WriteLine("Ошибка: текст превышает 1000 символов.");
+                return;
+            }
+
+            Console.WriteLine("Введите последовательность букв для поиска:");
+            string sequence = Console.ReadLine();
+
+            var wordsContainingSequence = wordSearchService.GetWordsContainingSequence(text, sequence);
+
+            Console.WriteLine("Слова, содержащие заданную последовательность букв:");
+            foreach (var word in wordsContainingSequence)
+            {
+                Console.WriteLine(word);
+            }
+        }
+    }
+}
+
+// task 11 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace LastNameSorter
+{
+    public interface IStringSorter
+    {
+        IEnumerable<string> Sort(IEnumerable<string> strings);
+    }
+
+    public class AlphabeticalStringSorter : IStringSorter
+    {
+        public IEnumerable<string> Sort(IEnumerable<string> strings)
+        {
+            return strings.OrderBy(s => s);
+        }
+    }
+
+    public class LastNameSortingService
+    {
+        private readonly IStringSorter _stringSorter;
+
+        public LastNameSortingService(IStringSorter stringSorter)
+        {
+            _stringSorter = stringSorter;
+        }
+
+        public string SortLastNames(string lastNames)
+        {
+            var lastNameList = lastNames.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(name => name.Trim());
+
+            var sortedLastNameList = _stringSorter.Sort(lastNameList);
+
+            return string.Join(", ", sortedLastNameList);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            IStringSorter stringSorter = new AlphabeticalStringSorter();
+            LastNameSortingService lastNameSortingService = new LastNameSortingService(stringSorter);
+
+            Console.WriteLine("Введите список фамилий, разделенных запятыми:");
+            string lastNames = Console.ReadLine();
+
+            string sortedLastNames = lastNameSortingService.SortLastNames(lastNames);
+
+            Console.WriteLine("Упорядоченный список фамилий:");
+            Console.WriteLine(sortedLastNames);
+        }
+    }
+}
+
+// task 14
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+
+namespace NumberSumCalculator
+{
+    public interface INumberExtractor
+    {
+        IEnumerable<int> ExtractNumbers(string text);
+    }
+
+    public class NumberExtractor : INumberExtractor
+    {
+        public IEnumerable<int> ExtractNumbers(string text)
+        {
+            var numbers = new List<int>();
+            var matches = Regex.Matches(text, @"\b(?:[1-9]|10)\b");
+
+            foreach (Match match in matches)
+            {
+                if (int.TryParse(match.Value, out int number))
+                {
+                    numbers.Add(number);
+                }
+            }
+
+            return numbers;
+        }
+    }
+
+    public class NumberSumService
+    {
+        private readonly INumberExtractor _numberExtractor;
+
+        public NumberSumService(INumberExtractor numberExtractor)
+        {
+            _numberExtractor = numberExtractor;
+        }
+
+        public int CalculateSum(string text)
+        {
+            var numbers = _numberExtractor.ExtractNumbers(text);
+            return numbers.Sum();
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            INumberExtractor numberExtractor = new NumberExtractor();
+            NumberSumService numberSumService = new NumberSumService(numberExtractor);
+
+            Console.WriteLine("Введите текст, содержащий слова и числа от 1 до 10:");
+            string text = Console.ReadLine();
+
+            int sum = numberSumService.CalculateSum(text);
+
+            Console.WriteLine($"Сумма включенных в текст чисел: {sum}");
+        }
+    }
+}
+
+
+
