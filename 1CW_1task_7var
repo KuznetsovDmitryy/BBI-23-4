@@ -1,0 +1,58 @@
+using System;
+
+namespace GoodsApp
+{
+    struct Goods
+    {
+        public string Name;  
+        public string SKU;   
+        public decimal Price;  
+        public int Quantity;   
+
+        public Goods(string name, string sku, decimal price, int quantity)
+        {
+            Name = name;
+            SKU = sku;
+            Price = price;
+            Quantity = quantity;
+        }
+
+        public void DisplayInfo()
+        {
+            Console.WriteLine($"Name: {Name}, SKU: {SKU}, Price: {Price}, Quantity: {Quantity}");
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Goods[] goodsArray = new Goods[5];
+            goodsArray[0] = new Goods("ПК", "LT1001", 1000.99m, 5);
+            goodsArray[1] = new Goods("Телефон", "SP2002", 699.49m, 10);
+            goodsArray[2] = new Goods("Плашет", "TB3003", 299.99m, 15);
+            goodsArray[3] = new Goods("Наушники", "HD4004", 149.99m, 25);
+            goodsArray[4] = new Goods("Часы", "SW5005", 199.99m, 20);
+
+            for (int i = 0; i < goodsArray.Length - 1; i++)
+            {
+                for (int j = 0; j < goodsArray.Length - 1 - i; j++)
+                {
+                    if (goodsArray[j].Price > goodsArray[j + 1].Price)
+                    {
+                        Goods temp = goodsArray[j];
+                        goodsArray[j] = goodsArray[j + 1];
+                        goodsArray[j + 1] = temp;
+                    }
+                }
+            }
+
+            Console.WriteLine("{0,-20} {1,-10} {2,10} {3,10}", "Name", "SKU", "Price", "Quantity");
+            Console.WriteLine(new string('-', 50));
+            for (int i = 0; i < goodsArray.Length; i++)
+            {
+                Console.WriteLine("{0,-20} {1,-10} {2,10:C} {3,10}", goodsArray[i].Name, goodsArray[i].SKU, goodsArray[i].Price, goodsArray[i].Quantity);
+            }
+        }
+    }
+}
