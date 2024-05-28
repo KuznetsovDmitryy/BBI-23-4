@@ -1,0 +1,189 @@
+using System;
+using System.Collections.Generic;
+
+namespace GoodsApp
+{
+    abstract class Goods
+    {
+        public string Name { get; set; }  
+        private string _sku;   
+        public decimal Price { get; set; }  
+        public int Quantity { get; set; }   
+
+        private static HashSet<string> usedSKUs = new HashSet<string>();  
+        public string ID
+        {
+            get => _sku;
+            set
+            {
+                if (usedSKUs.Contains(value))
+                {
+                    throw new ArgumentException("Артикул должен быть уникальным.");
+                }
+                if (_sku != null)
+                {
+                    usedSKUs.Remove(_sku);
+                }
+                _sku = value;
+                usedSKUs.Add(value);
+            }
+        }
+
+        public Goods(string name, string sku, decimal price, int quantity)
+        {
+            Name = name;
+            ID = sku;
+            Price = price;
+            Quantity = quantity;
+        }
+
+       
+        public abstract decimal CalculateCost();
+
+        
+        public abstract void DisplayInfo();
+    }
+    class Product : Goods
+    {
+        public int ShelfLife { get; set; }  
+
+        public Product(string name, string sku, decimal price, int quantity, int shelfLife)
+            : base(name, sku, price, quantity)
+        {
+            ShelfLife = shelfLife;
+        }
+
+        public override decimal CalculateCost()
+        {
+            return Price * Quantity;
+        }
+
+        public override void DisplayInfo()
+        {
+            Console.WriteLine($"Name: {Name}, SKU: {ID}, Price: {Price}, Quantity: {Quantity}, Shelf Life: {ShelfLife} days");
+        }
+    }
+
+    class Equipment : Goods
+    {
+        public int WarrantyPeriod { get; set; } 
+
+        public Equipment(string name, string sku, decimal price, int quantity, int warrantyPeriod)
+            : base(name, sku, price, quantity)
+        {
+            WarrantyPeriod = warrantyPeriod;
+        }
+
+        public override decimal CalculateCost()
+        {
+            return Price * Quantity;
+        }
+
+        public override void DisplayInfo()
+        {
+            Console.WriteLine($"Name: {Name}, SKU: {ID}, Price: {Price}, Quantity: {Quantity}, Warranty Period: {WarrantyPeriod} months");
+        }
+    }
+
+    class Tool : Goods
+    {
+        public string QualityClass { get; set; }  
+        public Tool(string name, string sku, decimal price, int quantity, string qualityClass)
+            : base(name, sku, price, quantity)
+        {
+            QualityClass = qualityClass;
+        }
+
+        public override decimal CalculateCost()
+        {
+            return Price * Quantity;
+        }
+
+        public override void DisplayInfo()
+        {
+            Console.WriteLine($"Name: {Name}, SKU: {ID}, Price: {Price}, Quantity: {Quantity}, Quality Class: {QualityClass}");
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                Goods[] products = new Goods[5];
+                products[0] = new Product("Milk", "P1001", 1.50m, 10, 7);
+                products[1] = new Product("Bread", "P1002", 0.80m, 20, 3);
+                products[2] = new Product("Cheese", "P1003", 5.00m, 5, 30);
+                products[3] = new Product("Butter", "P1004", 2.50m, 8, 60);
+                products[4] = new Product("Yogurt", "P1005", 1.20m, 15, 10);
+
+
+                Goods[] equipment = new Goods[5];
+                equipment[0] = new Equipment("Washing Machine", "E2001", 500.00m, 2, 24);
+                equipment[1] = new Equipment("Refrigerator", "E2002", 800.00m, 1, 36);
+                equipment[2] = new Equipment("Microwave", "E2003", 150.00m, 3, 12);
+                equipment[3] = new Equipment("Dishwasher", "E2004", 400.00m, 2, 18);
+                equipment[4] = new Equipment("Oven", "E2005", 600.00m, 1, 24);
+
+                Goods[] tools = new Goods[5];
+                tools[0] = new Tool("Hammer", "T3001", 15.00m, 20, "A");
+                tools[1] = new Tool("Screwdriver", "T3002", 7.50m, 30, "B");
+                tools[2] = new Tool("Wrench", "T3003", 20.00m, 15, "A");
+                tools[3] = new Tool("Pliers", "T3004", 10.00m, 25, "B");
+                tools[4] = new Tool("Saw", "T3005", 25.00m, 10, "A");
+
+                SortByCost(products);
+                SortByCost(equipment);
+                SortByCost(tools);
+
+                Console.WriteLine("Products:");
+                DisplayTable(products);
+                Console.WriteLine("\nEquipment:");
+                DisplayTable(equipment);
+                Console.WriteLine("\nTools:");
+                DisplayTable(tools);
+
+                Goods[] allGoods = new Goods[15];
+                Array.Copy(products, 0, allGoods, 0, products.Length);
+                Array.Copy(equipment, 0, allGoods, products.Length, equipment.Length);
+                Array.Copy(tools, 0, allGoods, products.Length + equipment.Length, tools.Length);
+
+                SortByCost(allGoods);
+
+                Console.WriteLine("\nAll Goods Sorted by Cost:");
+                DisplayTable(allGoods);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        static void SortByCost(Goods[] goodsArray)
+        {
+            for (int i = 0; i < goodsArray.Length - 1; i++)
+            {
+                for (int j = 0; j < goodsArray.Length - 1 - i; j++)
+                {
+                    if (goodsArray[j].CalculateCost() > goodsArray[j + 1].CalculateCost())
+                    {
+                        Goods temp = goodsArray[j];
+                        goodsArray[j] = goodsArray[j + 1];
+                        goodsArray[j + 1] = temp;
+                    }
+                }
+            }
+        }
+
+        static void DisplayTable(Goods[] goodsArray)
+        {
+            Console.WriteLine("{0,-20} {1,-10} {2,10} {3,10} {4,20}", "Name", "SKU", "Price", "Quantity", "Additional Info");
+            Console.WriteLine(new string('-', 70));
+            for (int i = 0; i < goodsArray.Length; i++)
+            {
+                goodsArray[i].DisplayInfo();
+            }
+        }
+    }
+}
