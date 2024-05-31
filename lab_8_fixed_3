@@ -1,0 +1,438 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+
+namespace GeneralTasks
+{
+    public interface ITask
+    {
+        void Execute();
+    }
+
+    public abstract class Task : ITask
+    {
+        public abstract void Execute();
+    }
+
+    // Task 2
+    public class MessageEncryptionTask : Task
+    {
+        public override void Execute()
+        {
+            IEncryptor encryptor = new ReverseWordEncryptor();
+            EncryptionService encryptionService = new EncryptionService(encryptor);
+
+            Console.WriteLine("Введите сообщение для шифрования:");
+            string originalMessage = Console.ReadLine();
+
+            string encryptedMessage = encryptionService.EncryptMessage(originalMessage);
+            string decryptedMessage = encryptionService.DecryptMessage(encryptedMessage);
+
+            Console.WriteLine($"Исходное сообщение: {originalMessage}");
+            Console.WriteLine($"Зашифрованное сообщение: {encryptedMessage}");
+            Console.WriteLine($"Расшифрованное сообщение: {decryptedMessage}");
+        }
+
+        public interface IEncryptor
+        {
+            string Encrypt(string message);
+            string Decrypt(string message);
+        }
+
+        public class ReverseWordEncryptor : IEncryptor
+        {
+            public string Encrypt(string message)
+            {
+                return ProcessMessage(message);
+            }
+
+            public string Decrypt(string message)
+            {
+                return ProcessMessage(message);
+            }
+
+            private string ProcessMessage(string message)
+            {
+                var words = Regex.Split(message, @"(\b[^\w]+\b)");
+                var reversedWords = words.Select(word => char.IsLetter(word[0]) ? new string(word.Reverse().ToArray()) : word);
+                return string.Concat(reversedWords);
+            }
+        }
+
+        public class EncryptionService
+        {
+            private readonly IEncryptor _encryptor;
+
+            public EncryptionService(IEncryptor encryptor)
+            {
+                _encryptor = encryptor;
+            }
+
+            public string EncryptMessage(string message)
+            {
+                return _encryptor.Encrypt(message);
+            }
+
+            public string DecryptMessage(string message)
+            {
+                return _encryptor.Decrypt(message);
+            }
+        }
+    }
+
+    // Task 4
+    public class SentenceComplexityTask : Task
+    {
+        public override void Execute()
+        {
+            ISentenceComplexityAnalyzer complexityAnalyzer = new SentenceComplexityAnalyzer();
+            ComplexityService complexityService = new ComplexityService(complexityAnalyzer);
+
+            Console.WriteLine("Введите предложение для анализа сложности:");
+            string sentence = Console.ReadLine();
+
+            int complexity = complexityService.GetSentenceComplexity(sentence);
+
+            Console.WriteLine($"Сложность предложения: {complexity}");
+        }
+
+        public interface ISentenceComplexityAnalyzer
+        {
+            int AnalyzeComplexity(string sentence);
+        }
+
+        public class SentenceComplexityAnalyzer : ISentenceComplexityAnalyzer
+        {
+            private static readonly char[] PunctuationMarks = { '.', ',', '!', '?', ';', ':', '-', '(', ')', '[', ']', '{', '}', '"', '\'' };
+
+            public int AnalyzeComplexity(string sentence)
+            {
+                int wordCount = CountWords(sentence);
+                int punctuationCount = CountPunctuationMarks(sentence);
+                return wordCount + punctuationCount;
+            }
+
+            private int CountWords(string sentence)
+            {
+                if (string.IsNullOrWhiteSpace(sentence))
+                {
+                    return 0;
+                }
+
+                var words = sentence.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                return words.Length;
+            }
+
+            private int CountPunctuationMarks(string sentence)
+            {
+                return sentence.Count(c => PunctuationMarks.Contains(c));
+            }
+        }
+
+        public class ComplexityService
+        {
+            private readonly ISentenceComplexityAnalyzer _complexityAnalyzer;
+
+            public ComplexityService(ISentenceComplexityAnalyzer complexityAnalyzer)
+            {
+                _complexityAnalyzer = complexityAnalyzer;
+            }
+
+            public int GetSentenceComplexity(string sentence)
+            {
+                return _complexityAnalyzer.AnalyzeComplexity(sentence);
+            }
+        }
+    }
+
+    // Task 5
+    public class LetterFrequencyTask : Task
+    {
+        public override void Execute()
+        {
+            ILetterFrequencyAnalyzer letterFrequencyAnalyzer = new LetterFrequencyAnalyzer();
+            FrequencyAnalysisService frequencyService = new FrequencyAnalysisService(letterFrequencyAnalyzer);
+
+            Console.WriteLine("Введите текст (не более 1000 символов):");
+            string text = Console.ReadLine();
+
+            if (text.Length > 1000)
+            {
+                Console.WriteLine("Ошибка: текст превышает 1000 символов.");
+                return;
+            }
+
+            var frequencyDict = frequencyService.GetLetterFrequency(text);
+
+            var sortedFrequency = frequencyDict.OrderByDescending(kvp => kvp.Value).ThenBy(kvp => kvp.Key);
+
+            Console.WriteLine("Буквы, на которые начинаются слова, в порядке убывания частоты:");
+            foreach (var kvp in sortedFrequency)
+            {
+                Console.WriteLine($"{kvp.Key}: {kvp.Value}");
+            }
+        }
+
+        public interface ILetterFrequencyAnalyzer
+        {
+            Dictionary<char, int> AnalyzeFrequency(string text);
+        }
+
+        public class LetterFrequencyAnalyzer : ILetterFrequencyAnalyzer
+        {
+            public Dictionary<char, int> AnalyzeFrequency(string text)
+            {
+                var frequencyDict = new Dictionary<char, int>();
+
+                var words = Regex.Matches(text, @"\b\w+");
+
+                foreach (Match match in words)
+                {
+                    char firstLetter = char.ToLower(match.Value[0]);
+
+                    if (char.IsLetter(firstLetter))
+                    {
+                        if (frequencyDict.ContainsKey(firstLetter))
+                        {
+                            frequencyDict[firstLetter]++;
+                        }
+                        else
+                        {
+                            frequencyDict[firstLetter] = 1;
+                        }
+                    }
+                }
+
+                return frequencyDict;
+            }
+        }
+
+        public class FrequencyAnalysisService
+        {
+            private readonly ILetterFrequencyAnalyzer _letterFrequencyAnalyzer;
+
+            public FrequencyAnalysisService(ILetterFrequencyAnalyzer letterFrequencyAnalyzer)
+            {
+                _letterFrequencyAnalyzer = letterFrequencyAnalyzer;
+            }
+
+            public Dictionary<char, int> GetLetterFrequency(string text)
+            {
+                return _letterFrequencyAnalyzer.AnalyzeFrequency(text);
+            }
+        }
+    }
+
+    // Task 7
+    public class WordFinderTask : Task
+    {
+        public override void Execute()
+        {
+            IWordFinder wordFinder = new WordFinder();
+            WordSearchService wordSearchService = new WordSearchService(wordFinder);
+
+            Console.WriteLine("Введите текст (не более 1000 символов):");
+            string text = Console.ReadLine();
+
+            if (text.Length > 1000)
+            {
+                Console.WriteLine("Ошибка: текст превышает 1000 символов.");
+                return;
+            }
+
+            Console.WriteLine("Введите последовательность букв для поиска:");
+            string sequence = Console.ReadLine();
+
+            var wordsContainingSequence = wordSearchService.GetWordsContainingSequence(text, sequence);
+
+            Console.WriteLine("Слова, содержащие заданную последовательность букв:");
+            foreach (var word in wordsContainingSequence)
+            {
+                Console.WriteLine(word);
+            }
+        }
+
+        public interface IWordFinder
+        {
+            IEnumerable<string> FindWords(string text, string sequence);
+        }
+
+        public class WordFinder : IWordFinder
+        {
+            public IEnumerable<string> FindWords(string text, string sequence)
+            {
+                var words = Regex.Matches(text, @"\b\w+\b")
+                                 .Cast<Match>()
+                                 .Select(m => m.Value)
+                                 .Where(word => word.IndexOf(sequence, StringComparison.OrdinalIgnoreCase) >= 0)
+                                 .Distinct();
+
+                return words;
+            }
+        }
+
+        public class WordSearchService
+        {
+            private readonly IWordFinder _wordFinder;
+
+            public WordSearchService(IWordFinder wordFinder)
+            {
+                _wordFinder = wordFinder;
+            }
+
+            public IEnumerable<string> GetWordsContainingSequence(string text, string sequence)
+            {
+                return _wordFinder.FindWords(text, sequence);
+            }
+        }
+    }
+
+    // Task 11
+    public class LastNameSorterTask : Task
+    {
+        public override void Execute()
+        {
+            IStringSorter stringSorter = new BubbleStringSorter();
+            LastNameSortingService lastNameSortingService = new LastNameSortingService(stringSorter);
+
+            Console.WriteLine("Введите список фамилий, разделенных запятыми:");
+            string lastNames = Console.ReadLine();
+
+            string sortedLastNames = lastNameSortingService.SortLastNames(lastNames);
+
+            Console.WriteLine("Упорядоченный список фамилий:");
+            Console.WriteLine(sortedLastNames);
+        }
+
+        public interface IStringSorter
+        {
+            IEnumerable<string> Sort(IEnumerable<string> strings);
+        }
+
+        public class BubbleStringSorter : IStringSorter
+        {
+            public IEnumerable<string> Sort(IEnumerable<string> strings)
+            {
+                var list = strings.ToList();
+                BubbleSort(list);
+                return list;
+            }
+
+            private void BubbleSort(List<string> list)
+            {
+                for (int i = 0; i < list.Count - 1; i++)
+                {
+                    for (int j = 0; j < list.Count - i - 1; j++)
+                    {
+                        if (string.Compare(list[j], list[j + 1], StringComparison.Ordinal) > 0)
+                        {
+                            var temp = list[j];
+                            list[j] = list[j + 1];
+                            list[j + 1] = temp;
+                        }
+                    }
+                }
+            }
+        }
+
+        public class LastNameSortingService
+        {
+            private readonly IStringSorter _stringSorter;
+
+            public LastNameSortingService(IStringSorter stringSorter)
+            {
+                _stringSorter = stringSorter;
+            }
+
+            public string SortLastNames(string lastNames)
+            {
+                var lastNameList = lastNames.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                            .Select(name => name.Trim());
+
+                var sortedLastNameList = _stringSorter.Sort(lastNameList);
+
+                return string.Join(", ", sortedLastNameList);
+            }
+        }
+    }
+
+    // Task 14
+    public class NumberSumTask : Task
+    {
+        public override void Execute()
+        {
+            INumberExtractor numberExtractor = new NumberExtractor();
+            NumberSumService numberSumService = new NumberSumService(numberExtractor);
+
+            Console.WriteLine("Введите текст, содержащий слова и числа от 1 до 10:");
+            string text = Console.ReadLine();
+
+            int sum = numberSumService.CalculateSum(text);
+
+            Console.WriteLine($"Сумма включенных в текст чисел: {sum}");
+        }
+
+        public interface INumberExtractor
+        {
+            IEnumerable<int> ExtractNumbers(string text);
+        }
+
+        public class NumberExtractor : INumberExtractor
+        {
+            public IEnumerable<int> ExtractNumbers(string text)
+            {
+                var numbers = new List<int>();
+                var matches = Regex.Matches(text, @"\b(?:[1-9]|10)\b");
+
+                foreach (Match match in matches)
+                {
+                    if (int.TryParse(match.Value, out int number))
+                    {
+                        numbers.Add(number);
+                    }
+                }
+
+                return numbers;
+            }
+        }
+
+        public class NumberSumService
+        {
+            private readonly INumberExtractor _numberExtractor;
+
+            public NumberSumService(INumberExtractor numberExtractor)
+            {
+                _numberExtractor = numberExtractor;
+            }
+
+            public int CalculateSum(string text)
+            {
+                var numbers = _numberExtractor.ExtractNumbers(text);
+                return numbers.Sum();
+            }
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            List<Task> tasks = new List<Task>
+            {
+                new MessageEncryptionTask(),
+                new SentenceComplexityTask(),
+                new LetterFrequencyTask(),
+                new WordFinderTask(),
+                new LastNameSorterTask(),
+                new NumberSumTask()
+            };
+
+            foreach (var task in tasks)
+            {
+                task.Execute();
+                Console.WriteLine();
+            }
+        }
+    }
+}
